@@ -1,0 +1,55 @@
+services:
+  backend: 
+    build:
+      context: ./backend
+    ports: 
+      - "3001:3001"
+    networks: 
+      - sistema_educativo
+    depends_on: 
+      - db
+    environment:
+      - NODE_ENV=development
+    volumes: 
+      - ./backend:/app
+    
+  frontend:
+    build: 
+      context: ./frontend
+    ports:
+      - "8080:80" 
+    networks:
+      - sistema_educativo
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    networks:
+      - sistema_educativo
+    depends_on:
+      - frontend
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    restart: always
+
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: sistemaEducativo123456#
+      POSTGRES_DB: sistema_educativo
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    networks:
+      - sistema_educativo
+
+networks:
+  sistema_educativo:
+    driver: bridge
