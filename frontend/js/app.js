@@ -173,10 +173,10 @@ class SistemaEducativo {
     async loadDashboard() {
         try {
             const [profesores, estudiantes, cursos, inscripciones] = await Promise.all([
-                Array(),
-                Array(),
+                profesoresService.getAll(),
+                estudiantesService.getAll(),
                 cursosService.getAll(),
-                Array()
+                inscripcionesService.getAll()
             ]);
 
             this.updateDashboardStats(profesores, estudiantes, cursos, inscripciones);
@@ -277,11 +277,34 @@ class SistemaEducativo {
     }
 
     async editProfesor(id) {
-       
+        try {
+            const profesor = await profesoresService.getById(id);
+            setFormData('profesorForm', profesor);
+            this.editingType = 'profesor';
+            this.editingId = id;
+            this.openModal('profesorModal');
+        } catch (error) {
+            handleApiError(error);
+        }
     }
 
     async deleteProfesor(id) {
-      
+        try {
+            if (!confirmDialog('¿Estás seguro de que deseas eliminar este profesor?')) {
+                return;
+            }
+
+            await profesoresService.deleteById(id);
+            showToast('Profesor eliminado exitosamente', 'success');
+            this.loadProfesores();
+            
+            // Actualizar el panel si es la sección actual
+            if (this.currentSection === 'dashboard') {
+                this.loadDashboard();
+            }
+        } catch (error) {
+            handleApiError(error);
+        }
     }
 
     async handleProfesorSubmit() {
@@ -344,10 +367,10 @@ class SistemaEducativo {
                         <i class="fas fa-calendar"></i>
                         ${formatDate(estudiante.fecha_registro)}
                     </td>
-                    <td>
+                    <td class="inscripciones">
                         <span class="badge success">${inscripcionesCount} cursos</span>
                     </td>
-                    <td>
+                    <td class="acciones">
                         <div class="action-buttons">
                             <button class="action-btn edit" onclick="app.editEstudiante(${estudiante.id_estudiante})">
                                 <i class="fas fa-edit"></i>
@@ -373,11 +396,34 @@ class SistemaEducativo {
     }
 
     async editEstudiante(id) {
-        
+        try {
+            const estudiante = await estudiantesService.getById(id);
+            setFormData('estudianteForm', estudiante);
+            this.editingType = 'estudiante';
+            this.editingId = id;
+            this.openModal('estudianteModal');
+        } catch (error) {
+            handleApiError(error);
+        }
     }
 
-    async deleteEstudiante(id) {
-       
+        async deleteEstudiante(id) {
+        try {
+            if (!confirmDialog('¿Estás seguro de que deseas eliminar este estudiante?')) {
+                return;
+            }
+
+            await estudiantesService.deleteById(id);
+            showToast('Estudiante eliminado exitosamente', 'success');
+            this.loadEstudiantes();
+            
+            // Actualizar el panel si es la sección actual
+            if (this.currentSection === 'dashboard') {
+                this.loadDashboard();
+            }
+        } catch (error) {
+            handleApiError(error);
+        }
     }
 
     async handleEstudianteSubmit() {
@@ -492,11 +538,34 @@ class SistemaEducativo {
     }
 
     async editCurso(id) {
-       
+        try {
+            const curso = await cursosService.getById(id);
+            setFormData('cursoForm', curso);
+            this.editingType = 'curso';
+            this.editingId = id;
+            this.openModal('cursoModal');
+        } catch (error) {
+            handleApiError(error);
+        }
     }
 
     async deleteCurso(id) {
-      
+        try {
+            if (!confirmDialog('¿Estás seguro de que deseas eliminar este curso?')) {
+                return;
+            }
+
+            await cursosService.deleteById(id);
+            showToast('Curso eliminado exitosamente', 'success');
+            this.loadCursos();
+            
+            // Actualizar el panel si es la sección actual
+            if (this.currentSection === 'dashboard') {
+                this.loadDashboard();
+            }
+        } catch (error) {
+            handleApiError(error);
+        }
     }
 
     async handleCursoSubmit() {
@@ -571,7 +640,7 @@ class SistemaEducativo {
                     <td>${profesor ? escapeHtml(profesor.nombre) : 'Sin profesor'}</td>
                     <td class="date">
                         <i class="fas fa-calendar"></i>
-                        ${formatDate(inscripcion.fecha_inscripcion)}
+                        ${formatDate(inscripcion.createdAt)}
                     </td>
                     <td>
                         <div class="action-buttons">
@@ -640,17 +709,40 @@ class SistemaEducativo {
     }
 
     async editInscripcion(id) {
-       
+        try {
+            const inscripcion = await inscripcionesService.getById(id);
+            setFormData('inscripcionForm', inscripcion);
+            this.editingType = 'inscripcion';
+            this.editingId = id;
+            this.openModal('inscripcionModal');
+        } catch (error) {
+            handleApiError(error);
+        }
     }
 
-    async deleteInscripcion(id) {
-       
+        async deleteInscripcion(id) {
+        try {
+            if (!confirmDialog('¿Estás seguro de que deseas eliminar esta inscripción?')) {
+                return;
+            }
+
+            await inscripcionesService.deleteById(id);
+            showToast('Inscripción eliminada exitosamente', 'success');
+            this.loadInscripciones();
+            
+            // Actualizar el panel si es la sección actual
+            if (this.currentSection === 'dashboard') {
+                this.loadDashboard();
+            }
+        } catch (error) {
+            handleApiError(error);
+        }
     }
 
     async handleInscripcionSubmit() {
         try {
             const formData = getFormData('inscripcionForm');
-            const errors = validateForm(formData, ['id_estudiante', 'id_curso', 'fecha_inscripcion']);
+            const errors = validateForm(formData, ['id_estudiante', 'id_curso']);
             
             if (errors.length > 0) {
                 showToast(errors.join(', '), 'error');
@@ -678,7 +770,7 @@ class SistemaEducativo {
     }
 
     // Modal Metodos
-    openModal(modalId) {
+    async openModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.add('active');
@@ -688,9 +780,15 @@ class SistemaEducativo {
                 const today = new Date().toISOString().split('T')[0];
                 if (modalId === 'estudianteModal') {
                     document.getElementById('estudianteFechaRegistro').value = today;
-                } else if (modalId === 'inscripcionModal') {
-                    document.getElementById('inscripcionFecha').value = today;
                 }
+            }
+
+            // Load data for select elements
+            if (modalId === 'cursoModal') {
+                await this.loadProfesoresSelect();
+            } else if (modalId === 'inscripcionModal') {
+                await this.loadEstudiantesSelect();
+                await this.loadCursosSelect();
             }
         }
     }
@@ -702,6 +800,67 @@ class SistemaEducativo {
             clearForm(modalId.replace('Modal', 'Form'));
             this.editingId = null;
             this.editingType = null;
+        }
+    }
+
+    // Funciones para cargar datos en selects
+    async loadProfesoresSelect() {
+        try {
+            const profesores = await profesoresService.getAll();
+            const select = document.getElementById('cursoProfesor');
+            
+            // Limpiar opciones existentes excepto la primera
+            select.innerHTML = '<option value="">Seleccionar profesor</option>';
+            
+            // Agregar profesores
+            profesores.forEach(profesor => {
+                const option = document.createElement('option');
+                option.value = profesor.id_profesor;
+                option.textContent = profesor.nombre;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            handleApiError(error);
+        }
+    }
+
+    async loadEstudiantesSelect() {
+        try {
+            const estudiantes = await estudiantesService.getAll();
+            const select = document.getElementById('inscripcionEstudiante');
+            
+            // Limpiar opciones existentes excepto la primera
+            select.innerHTML = '<option value="">Seleccionar estudiante</option>';
+            
+            // Agregar estudiantes
+            estudiantes.forEach(estudiante => {
+                const option = document.createElement('option');
+                option.value = estudiante.id_estudiante;
+                option.textContent = estudiante.nombre;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            handleApiError(error);
+        }
+    }
+
+    async loadCursosSelect() {
+        try {
+            const cursos = await cursosService.getAll();
+            const select = document.getElementById('inscripcionCurso');
+            
+            // Limpiar opciones existentes excepto la primera
+            select.innerHTML = '<option value="">Seleccionar curso</option>';
+            
+            // Agregar cursos
+            cursos.forEach(curso => {
+                const option = document.createElement('option');
+                option.value = curso.id_curso;
+                option.textContent = curso.nombre_curso;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            handleApiError(error);
         }
     }
 }

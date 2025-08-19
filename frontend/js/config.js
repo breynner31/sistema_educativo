@@ -1,20 +1,15 @@
 // API Configuration
 const API_CONFIG = {
     // Base URL for your API
-    BASE_URL: '',
-    
-    // API Key for authentication
-    API_KEY: '',
-    
-    // Authorization token (Bearer token, JWT, etc.)
-    AUTH_TOKEN: '',
+    BASE_URL: 'http://localhost:3000/api',
     
     // API Endpoints
     ENDPOINTS: {
-        PROFESORES: '/',
-        ESTUDIANTES: '/',
-        CURSOS: '/',
-        INSCRIPCIONES: '/'
+        PROFESORES: '/profesores',
+        ESTUDIANTES: '/estudiantes',
+        CURSOS: '/cursos',
+        INSCRIPCIONES: '/inscripciones',
+        HORARIOS: '/horarios'
     },
     
     // Request timeout in milliseconds
@@ -33,7 +28,7 @@ const ENV_CONFIG = {
     DEBUG: true,
     
     // Mock data when API is not available
-    USE_MOCK_DATA: true,
+    USE_MOCK_DATA: false,
     
     // Auto-refresh interval for dashboard (in milliseconds)
     REFRESH_INTERVAL: 30000

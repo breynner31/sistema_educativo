@@ -331,7 +331,13 @@ body {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
+
+/* Estilos básicos para las columnas */
+
 
 .data-table tr:hover {
     background: #f8fafc;

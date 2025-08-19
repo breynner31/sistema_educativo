@@ -154,8 +154,56 @@ function setFormData(formId, data) {
     const form = document.getElementById(formId);
     if (!form) return;
 
+    // Mapeo inverso: de nombres de BD a nombres de formulario
+    const reverseFieldMapping = {
+        // Profesores
+        nombre: 'profesorNombre',
+        especialidad: 'profesorEspecialidad',
+        
+        // Estudiantes
+        email: 'estudianteEmail',
+        fecha_registro: 'estudianteFechaRegistro',
+        
+        // Cursos
+        nombre_curso: 'cursoNombre',
+        id_profesor: 'cursoProfesor',
+        
+        // Inscripciones
+        id_estudiante: 'inscripcionEstudiante',
+        id_curso: 'inscripcionCurso'
+        // fecha_inscripcion no existe en la BD, se usa createdAt automáticamente
+    };
+
+    // Mapeo específico por tipo de formulario
+    const formSpecificMapping = {
+        'profesorForm': {
+            nombre: 'profesorNombre',
+            especialidad: 'profesorEspecialidad'
+        },
+        'estudianteForm': {
+            nombre: 'estudianteNombre',
+            email: 'estudianteEmail',
+            fecha_registro: 'estudianteFechaRegistro'
+        },
+        'cursoForm': {
+            nombre_curso: 'cursoNombre',
+            id_profesor: 'cursoProfesor'
+        },
+        'inscripcionForm': {
+            id_estudiante: 'inscripcionEstudiante',
+            id_curso: 'inscripcionCurso'
+        }
+    };
+
     Object.keys(data).forEach(key => {
-        const input = form.querySelector(`#${formId.replace('Form', '')}${key.charAt(0).toUpperCase() + key.slice(1)}`);
+        // Usar mapeo específico del formulario si existe, sino usar el general
+        const specificMapping = formSpecificMapping[formId];
+        const formFieldName = specificMapping?.[key] || reverseFieldMapping[key] || key;
+        
+        // Buscar el input por nombre o ID
+        let input = form.querySelector(`[name="${formFieldName}"]`) || 
+                   form.querySelector(`#${formFieldName}`);
+        
         if (input) {
             if (input.type === 'date' && data[key]) {
                 input.value = formatDateForInput(data[key]);
@@ -191,8 +239,8 @@ function getFormData(formId) {
         cursoNombre: 'nombre_curso',
         cursoProfesor: 'id_profesor',
         inscripcionEstudiante: 'id_estudiante',
-        inscripcionCurso: 'id_curso',
-        inscripcionFecha: 'fecha_inscripcion'
+        inscripcionCurso: 'id_curso'
+        // inscripcionFecha no se mapea ya que no existe en la BD
     };
 
     const mappedData = {};
@@ -256,10 +304,6 @@ function handleApiError(error) {
         message = 'Error de conexión. Verifica tu conexión a internet.';
     } else if (error.message.includes('404')) {
         message = 'Recurso no encontrado.';
-    } else if (error.message.includes('401')) {
-        message = 'No autorizado. Verifica tus credenciales.';
-    } else if (error.message.includes('403')) {
-        message = 'Acceso denegado.';
     } else if (error.message.includes('500')) {
         message = 'Error interno del servidor.';
     } else if (error.message) {

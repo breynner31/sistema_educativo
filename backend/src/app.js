@@ -1,55 +1,74 @@
+require('dotenv').config();  // Carga las variables de entorno al principio
+
 const express = require('express');
 const cors = require('cors');
+const { sequelize } = require('./modules/user/models');
+
+// Middlewares de seguridad para producción y desarrollo
 const helmet = require('helmet');
-const morgan = require('morgan');
-require('dotenv').config();
+const rateLimit = require('express-rate-limit');
+const xss = require('xss-clean');
+const mongoSanitize = require('express-mongo-sanitize');
+
+// Importar rutas principales
+const apiRoutes = require('./modules/user/routes');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
+// Helmet: cabeceras de seguridad
+app.use(helmet());
 
+// Rate limiting: limita a 100 peticiones por 15 minutos por IP
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 1000, // máximo de peticiones por IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
 
+// CORS: permite acceso desde el frontend
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:8080',
-  credentials: true
+  origin: true, // Permite todos los orígenes en desarrollo
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept', 'Authorization']
 }));
 
-app.use(express.json());
+// Sanitización contra XSS
+app.use(xss());
+
+// Sanitización contra inyección NoSQL (si usas MongoDB, opcional con Sequelize)
+app.use(mongoSanitize());
+
+// Límite de tamaño de payload JSON
+app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
+// Rutas API
+app.use('/api', apiRoutes);
 
-app.get('/', (req, res) => {
-  res.json({
-    message: 'API del Sistema Educativo',
-    version: '1.0.0',
-    status: 'running'
-  });
+// Ruta de prueba de salud
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date() });
 });
 
-app.get('/api/test', (req, res) => {
-  res.json({
-    message: 'Backend funcionando correctamente',
-    timestamp: new Date().toISOString()
-  });
-});
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0'; // Escuchar en todas las interfaces
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: 'Algo salió mal en el servidor',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Error interno del servidor'
-  });
-});
+// Inicializar base de datos y servidor
+async function iniciarServidor() {
+  try {
+    // Verificar conexión a la base de datos
+    await sequelize.authenticate();
+    console.log('Conexión a la base de datos establecida correctamente.');
 
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Ruta no encontrada'
-  });
-});
+    app.listen(PORT, HOST, () => {
+      console.log(`Servidor corriendo en http://${HOST}:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Error al iniciar el servidor:', error);
+    process.exit(1);
+  }
+}
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-  console.log(` Ambiente: ${process.env.NODE_ENV || 'development'}`);
-  console.log(` URL: http://localhost:${PORT}`);
-});
-
-module.exports = app; 
+iniciarServidor();
