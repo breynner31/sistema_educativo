@@ -1,20 +1,8 @@
 // API Configuration
 const API_CONFIG = {
     // Base URL for your API
-    BASE_URL: 'http://localhost:3000/api',
-    
-    // API Endpoints
-    ENDPOINTS: {
-        PROFESORES: '/profesores',
-        ESTUDIANTES: '/estudiantes',
-        CURSOS: '/cursos',
-        INSCRIPCIONES: '/inscripciones',
-        HORARIOS: '/horarios'
-    },
-    
-    // Request timeout in milliseconds
-    TIMEOUT: 10000,
-    
+    BASE_URL: 'http://localhost:3001/api',
+
     // Default headers for all requests
     DEFAULT_HEADERS: {
         'Content-Type': 'application/json',
@@ -31,7 +19,8 @@ const ENV_CONFIG = {
     USE_MOCK_DATA: false,
     
     // Auto-refresh interval for dashboard (in milliseconds)
-    REFRESH_INTERVAL: 30000
+    // 0 = disabled, 30000 = 30 seconds
+    REFRESH_INTERVAL: 0
 };
 
 // UI Configuration

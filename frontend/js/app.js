@@ -13,14 +13,7 @@ class SistemaEducativo {
         this.setupSearch();
         await this.loadDashboard();
         
-        // Actualización automática del panel si está habilitado
-        if (ENV_CONFIG.REFRESH_INTERVAL > 0) {
-            setInterval(() => {
-                if (this.currentSection === 'dashboard') {
-                    this.loadDashboard();
-                }
-            }, ENV_CONFIG.REFRESH_INTERVAL);
-        }
+
     }
 
     setupEventListeners() {
@@ -98,33 +91,33 @@ class SistemaEducativo {
         // Profesores buscar
         const searchProfesores = document.getElementById('searchProfesores');
         if (searchProfesores) {
-            searchProfesores.addEventListener('input', debounce((e) => {
+            searchProfesores.addEventListener('input', (e) => {
                 this.filterProfesores(e.target.value);
-            }, 300));
+            });
         }
 
         // Estudiantes buscar
         const searchEstudiantes = document.getElementById('searchEstudiantes');
         if (searchEstudiantes) {
-            searchEstudiantes.addEventListener('input', debounce((e) => {
+            searchEstudiantes.addEventListener('input', (e) => {
                 this.filterEstudiantes(e.target.value);
-            }, 300));
+            });
         }
 
         // Cursos buscar
         const searchCursos = document.getElementById('searchCursos');
         if (searchCursos) {
-            searchCursos.addEventListener('input', debounce((e) => {
+            searchCursos.addEventListener('input', (e) => {
                 this.filterCursos(e.target.value);
-            }, 300));
+            });
         }
 
         // Inscripciones buscar
         const searchInscripciones = document.getElementById('searchInscripciones');
         if (searchInscripciones) {
-            searchInscripciones.addEventListener('input', debounce((e) => {
+            searchInscripciones.addEventListener('input', (e) => {
                 this.filterInscripciones(e.target.value);
-            }, 300));
+            });
         }
     }
 
@@ -447,10 +440,7 @@ class SistemaEducativo {
             this.closeModal('estudianteModal');
             this.loadEstudiantes();
             
-            // Actualizar el panel si es la sección actual
-            if (this.currentSection === 'dashboard') {
-                this.loadDashboard();
-            }
+
         } catch (error) {
             handleApiError(error);
         }
