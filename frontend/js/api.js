@@ -2,7 +2,6 @@
 class ApiService {
     constructor() {
         this.baseUrl = API_CONFIG.BASE_URL;
-        this.timeout = API_CONFIG.TIMEOUT;
     }
 
     // Obtener encabezados predeterminados
@@ -13,8 +12,8 @@ class ApiService {
     }
 
     // Método de solicitud HTTP genérico
-    async request(endpoint, options = {}) {
-        const url = `${this.baseUrl}${endpoint}`;
+    async request(BASE_URL, options = {}) {
+        const url = `${this.baseUrl}${BASE_URL}`;
         const config = {
             headers: this.getHeaders(),
             ...options
@@ -22,7 +21,6 @@ class ApiService {
 
         // Agregar tiempo de espera
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
         config.signal = controller.signal;
 
         try {
@@ -33,7 +31,6 @@ class ApiService {
             }
 
             const response = await fetch(url, config);
-            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -52,11 +49,7 @@ class ApiService {
 
             return data;
         } catch (error) {
-            clearTimeout(timeoutId);
             
-            if (error.name === 'AbortError') {
-                throw new Error('Request timeout');
-            }
             
             console.error('API Error:', error);
             throw error;
@@ -97,7 +90,7 @@ class ApiService {
 class ProfesoresService extends ApiService {
     constructor() {
         super();
-        this.endpoint = API_CONFIG.ENDPOINTS.PROFESORES;
+        this.endpoint = '/profesores';
     }
 
     async getAll() {
@@ -133,7 +126,7 @@ class ProfesoresService extends ApiService {
 class EstudiantesService extends ApiService {
     constructor() {
         super();
-        this.endpoint = API_CONFIG.ENDPOINTS.ESTUDIANTES;
+        this.endpoint = '/estudiantes';
     }
 
     async getAll() {
@@ -173,7 +166,7 @@ class EstudiantesService extends ApiService {
 class CursosService extends ApiService {
     constructor() {
         super();
-        this.endpoint = API_CONFIG.ENDPOINTS.CURSOS;
+        this.endpoint = '/cursos';
     }
 
     async getAll() {
@@ -217,7 +210,7 @@ class CursosService extends ApiService {
 class InscripcionesService extends ApiService {
     constructor() {
         super();
-        this.endpoint = API_CONFIG.ENDPOINTS.INSCRIPCIONES;
+        this.endpoint = '/inscripciones';
     }
 
     async getAll() {
@@ -261,7 +254,7 @@ class InscripcionesService extends ApiService {
 class HorariosService extends ApiService {
     constructor() {
         super();
-        this.endpoint = API_CONFIG.ENDPOINTS.HORARIOS;
+        this.endpoint = '/horarios';
     }
 
     async getAll() {

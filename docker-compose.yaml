@@ -1,0 +1,65 @@
+services:
+  backend: 
+    build:
+      context: ./backend
+    ports: 
+      - "3001:3001"
+    networks: 
+      - sistema_educativo
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=development
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+    volumes: []
+    restart: always
+    
+  frontend:
+    build: 
+      context: ./frontend
+    ports:
+      - "8080:80" 
+    networks: 
+      - sistema_educativo
+    depends_on:
+      - backend
+    volumes: []
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    networks: 
+      - sistema_educativo
+    depends_on:
+      - frontend
+    volumes: []
+    restart: always
+
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    networks:
+      - sistema_educativo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  sistema_educativo:
+    driver: bridge

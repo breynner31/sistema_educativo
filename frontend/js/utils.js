@@ -43,15 +43,7 @@ function showToast(message, type = 'info') {
 
     container.appendChild(toast);
 
-    // Eliminar automáticamente después del tiempo definido
-    setTimeout(() => {
-        toast.style.animation = 'slideOutRight 0.3s ease forwards';
-        setTimeout(() => {
-            if (container.contains(toast)) {
-                container.removeChild(toast);
-            }
-        }, 300);
-    }, UI_CONFIG.TOAST_DURATION);
+
 }
 
 // -------------------------------
@@ -89,17 +81,7 @@ function formatDateForInput(dateString) {
 // Función debounce: retrasa la ejecución de la función
 // hasta que el usuario deje de interactuar por X tiempo
 // -------------------------------
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+
 
 // -------------------------------
 // Validar email con expresión regular
@@ -298,9 +280,7 @@ function handleApiError(error) {
 
     let message = 'Ha ocurrido un error';
 
-    if (error.message.includes('timeout')) {
-        message = 'Tiempo de espera agotado. Intenta nuevamente.';
-    } else if (error.message.includes('Network')) {
+    if (error.message.includes('Network')) {
         message = 'Error de conexión. Verifica tu conexión a internet.';
     } else if (error.message.includes('404')) {
         message = 'Recurso no encontrado.';
